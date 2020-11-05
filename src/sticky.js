@@ -32,6 +32,7 @@ class Sticky {
       marginTop: options.marginTop || 0,
       marginBottom: options.marginBottom || 0,
       stickyFor: options.stickyFor || 0,
+      stickyDisableFor: options.stickyDisableFor || Infinity,
       stickyClass: options.stickyClass || null,
       stickyContainer: options.stickyContainer || 'body',
     };
@@ -78,6 +79,8 @@ class Sticky {
     element.sticky.marginTop = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
     element.sticky.marginBottom = parseInt(element.getAttribute('data-margin-bottom')) || this.options.marginBottom;
     element.sticky.stickyFor = parseInt(element.getAttribute('data-sticky-for')) || this.options.stickyFor;
+    element.sticky.stickyDisableFor = parseInt(element.getAttribute('data-sticky-disable-for')) || this.options.stickyDisableFor;
+    element.sticky.stickyDisableFor = element.sticky.stickyDisableFor < 0 ? Infinity : element.sticky.stickyDisableFor;
     element.sticky.stickyClass = element.getAttribute('data-sticky-class') || this.options.stickyClass;
     element.sticky.wrap = element.hasAttribute('data-sticky-wrap') ? true : this.options.wrap;
     // @todo attribute for stickyContainer
@@ -122,7 +125,7 @@ class Sticky {
    activate(element) {
     if (
       ((element.sticky.rect.top + element.sticky.rect.height) < (element.sticky.container.rect.top + element.sticky.container.rect.height))
-      && (element.sticky.stickyFor < this.vp.width)
+      && ((element.sticky.stickyFor < this.vp.width) && (element.sticky.stickyDisableFor > this.vp.width))
       && !element.sticky.active
     ) {
       element.sticky.active = true;
@@ -178,15 +181,16 @@ class Sticky {
     element.sticky.rect = this.getRectangle(element);
     element.sticky.container.rect = this.getRectangle(element.sticky.container);
 
+      console.log(element.sticky.stickyDisableFor)
     if (
       ((element.sticky.rect.top + element.sticky.rect.height) < (element.sticky.container.rect.top + element.sticky.container.rect.height))
-      && (element.sticky.stickyFor < this.vp.width)
+      && ((element.sticky.stickyFor < this.vp.width) && (element.sticky.stickyDisableFor > this.vp.width))
       && !element.sticky.active
     ) {
       element.sticky.active = true;
     } else if (
       ((element.sticky.rect.top + element.sticky.rect.height) >= (element.sticky.container.rect.top + element.sticky.container.rect.height))
-      || element.sticky.stickyFor >= this.vp.width
+      || ((element.sticky.stickyFor >= this.vp.width) && (element.sticky.stickyDisableFor <= this.vp.width))
       && element.sticky.active
     ) {
       element.sticky.active = false;
