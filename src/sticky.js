@@ -241,9 +241,10 @@ class Sticky {
    setPosition(element) {
     this.css(element, { position: '', width: '', top: '', left: '' });
 
-    if ((this.vp.height < element.sticky.rect.height) || !element.sticky.active) {
-      return;
-    }
+      //(this.vp.height < element.sticky.rect.height) || 
+      if (!element.sticky.active) {
+          return;
+      }
 
     if (!element.sticky.rect.width) {
       element.sticky.rect = this.getRectangle(element);

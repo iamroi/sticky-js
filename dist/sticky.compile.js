@@ -193,8 +193,7 @@ var Sticky = /*#__PURE__*/function () {
     value: function onResizeEvents(element) {
       this.vp = this.getViewportSize();
       element.sticky.rect = this.getRectangle(element);
-      element.sticky.container.rect = this.getRectangle(element.sticky.container);
-      console.log(element.sticky.stickyDisableFor);
+      element.sticky.container.rect = this.getRectangle(element.sticky.container); // console.log(element.sticky.stickyDisableFor)
 
       if (element.sticky.rect.top + element.sticky.rect.height < element.sticky.container.rect.top + element.sticky.container.rect.height && element.sticky.stickyFor < this.vp.width && element.sticky.stickyDisableFor > this.vp.width && !element.sticky.active) {
         element.sticky.active = true;
@@ -259,9 +258,9 @@ var Sticky = /*#__PURE__*/function () {
         width: '',
         top: '',
         left: ''
-      });
+      }); //(this.vp.height < element.sticky.rect.height) || 
 
-      if (this.vp.height < element.sticky.rect.height || !element.sticky.active) {
+      if (!element.sticky.active) {
         return;
       }
 
