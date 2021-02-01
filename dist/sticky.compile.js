@@ -39,6 +39,7 @@ var Sticky = /*#__PURE__*/function () {
       marginBottom: options.marginBottom || 0,
       stickyFor: options.stickyFor || 0,
       stickyDisableFor: options.stickyDisableFor || Infinity,
+      stickyMode: 'top',
       stickyClass: options.stickyClass || null,
       stickyContainer: options.stickyContainer || 'body'
     };
@@ -91,6 +92,7 @@ var Sticky = /*#__PURE__*/function () {
       element.sticky.stickyFor = parseInt(element.getAttribute('data-sticky-for')) || this.options.stickyFor;
       element.sticky.stickyDisableFor = parseInt(element.getAttribute('data-sticky-disable-for')) || this.options.stickyDisableFor;
       element.sticky.stickyDisableFor = element.sticky.stickyDisableFor < 0 ? Infinity : element.sticky.stickyDisableFor;
+      element.sticky.stickyMode = element.getAttribute('data-sticky-mode') || this.options.stickyMode;
       element.sticky.stickyClass = element.getAttribute('data-sticky-class') || this.options.stickyClass;
       element.sticky.wrap = element.hasAttribute('data-sticky-wrap') ? true : this.options.wrap; // @todo attribute for stickyContainer
       // element.sticky.stickyContainer = element.getAttribute('data-sticky-container') || this.options.stickyContainer;
@@ -258,7 +260,7 @@ var Sticky = /*#__PURE__*/function () {
         width: '',
         top: '',
         left: ''
-      }); //(this.vp.height < element.sticky.rect.height) || 
+      }); //(this.vp.height < element.sticky.rect.height) ||
 
       if (!element.sticky.active) {
         return;
@@ -276,6 +278,11 @@ var Sticky = /*#__PURE__*/function () {
         });
       }
 
+      var stickyOverflowHeight = this.vp.height - (element.sticky.rect.height + element.sticky.marginTop);
+      var stickyModeHeight = element.sticky.stickyMode === 'bottom' ? stickyOverflowHeight : 0; // test = 100
+      // test = 0
+      // console.log(test)
+
       if (element.sticky.rect.top === 0 && element.sticky.container === this.body) {
         this.css(element, {
           position: 'fixed',
@@ -287,14 +294,14 @@ var Sticky = /*#__PURE__*/function () {
         if (element.sticky.stickyClass) {
           element.classList.add(element.sticky.stickyClass);
         }
-      } else if (this.scrollTop > element.sticky.rect.top - element.sticky.marginTop) {
+      } else if (this.scrollTop > element.sticky.rect.top - element.sticky.marginTop - stickyModeHeight) {
         this.css(element, {
           position: 'fixed',
           width: element.sticky.rect.width + 'px',
           left: element.sticky.rect.left + 'px'
         });
 
-        if (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop > element.sticky.container.rect.top + element.sticky.container.offsetHeight - element.sticky.marginBottom) {
+        if (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight > element.sticky.container.rect.top + element.sticky.container.offsetHeight - element.sticky.marginBottom) {
           if (element.sticky.stickyClass) {
             element.classList.remove(element.sticky.stickyClass);
           }
@@ -308,7 +315,7 @@ var Sticky = /*#__PURE__*/function () {
           }
 
           this.css(element, {
-            top: element.sticky.marginTop + 'px'
+            top: element.sticky.marginTop + stickyModeHeight + 'px'
           });
         }
       } else {
