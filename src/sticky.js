@@ -34,7 +34,11 @@ class Sticky {
             stickyDisableFor: options.stickyDisableFor || Infinity,
             stickyMode: 'top',
             stickyClass: options.stickyClass || null,
+            stickyInactiveClass: options.stickyInactiveClass || null,
+            stickyIgnoreScrollFor: options.stickyIgnoreScrollFor || 0,
             stickyContainer: options.stickyContainer || 'body',
+            // onStickyChange: options.onStickyChange || null,
+            afterSetPosition: options.afterSetPosition || null,
         };
 
         this.updateScrollTopPosition = this.updateScrollTopPosition.bind(this);
@@ -83,10 +87,14 @@ class Sticky {
         element.sticky.stickyDisableFor = element.sticky.stickyDisableFor < 0 ? Infinity : element.sticky.stickyDisableFor;
         element.sticky.stickyMode = element.getAttribute('data-sticky-mode') || this.options.stickyMode;
         element.sticky.stickyClass = element.getAttribute('data-sticky-class') || this.options.stickyClass;
+        element.sticky.stickyInactiveClass = element.getAttribute('data-sticky-inactive-class') || this.options.stickyInactiveClass;
+        element.sticky.stickyIgnoreScrollFor = element.getAttribute('data-sticky-ignore-scroll-for') || this.options.stickyIgnoreScrollFor;
         element.sticky.wrap = element.hasAttribute('data-sticky-wrap') ? true : this.options.wrap;
         // @todo attribute for stickyContainer
         // element.sticky.stickyContainer = element.getAttribute('data-sticky-container') || this.options.stickyContainer;
         element.sticky.stickyContainer = this.options.stickyContainer;
+        // element.sticky.onStickyChange = this.options.onStickyChange;
+        element.sticky.afterSetPosition = this.options.afterSetPosition;
 
         element.sticky.container = this.getStickyContainer(element);
         element.sticky.container.rect = this.getRectangle(element.sticky.container);
@@ -263,12 +271,15 @@ class Sticky {
 
         let stickyModeHeight = element.sticky.stickyMode === 'bottom' ? stickyOverflowHeight : 0
 
-        // test = 100
+        stickyIgnoreScrollFor = element.sticky.stickyIgnoreScrollFor
+        // stickyIgnoreScrollFor = 100
         // test = 0
         // console.log(test)
+        // console.log(element.sticky.rect, this.scrollTop)
 
         if (
             element.sticky.rect.top === 0
+            && this.scrollTop > stickyIgnoreScrollFor
             && element.sticky.container === this.body
         ) {
             this.css(element, {
@@ -277,10 +288,14 @@ class Sticky {
                 left: element.sticky.rect.left + 'px',
                 width: element.sticky.rect.width + 'px',
             });
-            if (element.sticky.stickyClass) {
-                element.classList.add(element.sticky.stickyClass);
-            }
-        } else if (this.scrollTop > (element.sticky.rect.top - element.sticky.marginTop - stickyModeHeight)) {
+
+            this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
+            this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false);
+            // if(typeof element.sticky.onStickyChange === 'function') {
+            //     element.sticky.onStickyChange(true, element, this)
+            // }
+
+        } else if (this.scrollTop > (element.sticky.rect.top - element.sticky.marginTop - stickyModeHeight + stickyIgnoreScrollFor)) {
             this.css(element, {
                 position: 'fixed',
                 width: element.sticky.rect.width + 'px',
@@ -288,29 +303,36 @@ class Sticky {
             });
 
             if (
-                (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight)
+                (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight + stickyIgnoreScrollFor)
                 > (element.sticky.container.rect.top + element.sticky.container.offsetHeight - element.sticky.marginBottom)
             ) {
 
-                if (element.sticky.stickyClass) {
-                    element.classList.remove(element.sticky.stickyClass);
-                }
+                this.addOrRemoveClasses(element, element.sticky.stickyClass, false);
+                this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, true);
+                // if(typeof element.sticky.onStickyChange === 'function') {
+                //     element.sticky.onStickyChange(false)
+                // }
 
                 this.css(element, {
                         top: (element.sticky.container.rect.top + element.sticky.container.offsetHeight) - (this.scrollTop + element.sticky.rect.height + element.sticky.marginBottom) + 'px'
                     }
                 );
             } else {
-                if (element.sticky.stickyClass) {
-                    element.classList.add(element.sticky.stickyClass);
-                }
+
+                this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
+                this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false);
+                // if(typeof element.sticky.onStickyChange === 'function') {
+                //     element.sticky.onStickyChange(true)
+                // }
 
                 this.css(element, {top: (element.sticky.marginTop + stickyModeHeight) + 'px'});
             }
         } else {
-            if (element.sticky.stickyClass) {
-                element.classList.remove(element.sticky.stickyClass);
-            }
+            this.addOrRemoveClasses(element, element.sticky.stickyClass, false);
+            this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, true);
+            // if(typeof element.sticky.onStickyChange === 'function') {
+            //     element.sticky.onStickyChange(false)
+            // }
 
             this.css(element, {position: '', width: '', top: '', left: ''});
 
@@ -318,6 +340,26 @@ class Sticky {
                 this.css(element.parentNode, {display: '', width: '', height: ''});
             }
         }
+
+        if(typeof element.sticky.afterSetPosition === 'function') {
+            element.sticky.afterSetPosition(element, this)
+        }
+    }
+
+    addOrRemoveClasses(element, classes, adding = true) {
+        // remove lines
+        classes = classes.replace(/(\r\n|\n|\r)/gm,"");
+        // remove duplicate spaces
+        classes = classes.replace(/\s+/g,' ');
+        // console.log(classes)
+        var classesArr = classes.split(' ')
+        this.forEach(classesArr, (classItem) => {
+            if(adding) {
+                element.classList.add(classItem);
+            } else {
+                element.classList.remove(classItem);
+            }
+        });
     }
 
 
