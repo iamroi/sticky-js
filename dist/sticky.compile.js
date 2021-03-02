@@ -45,6 +45,7 @@ var Sticky = /*#__PURE__*/function () {
       stickyIgnoreScrollFor: options.stickyIgnoreScrollFor || 0,
       stickyContainer: options.stickyContainer || 'body',
       // onStickyChange: options.onStickyChange || null,
+      beforeSetPosition: options.beforeSetPosition || null,
       afterSetPosition: options.afterSetPosition || null
     };
     this.updateScrollTopPosition = this.updateScrollTopPosition.bind(this);
@@ -105,6 +106,7 @@ var Sticky = /*#__PURE__*/function () {
 
       element.sticky.stickyContainer = this.options.stickyContainer; // element.sticky.onStickyChange = this.options.onStickyChange;
 
+      element.sticky.beforeSetPosition = this.options.beforeSetPosition;
       element.sticky.afterSetPosition = this.options.afterSetPosition;
       element.sticky.container = this.getStickyContainer(element);
       element.sticky.container.rect = this.getRectangle(element.sticky.container);
@@ -263,6 +265,11 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "setPosition",
     value: function setPosition(element) {
+      if (typeof element.sticky.beforeSetPosition === 'function') {
+        var proceed = element.sticky.beforeSetPosition(element, this);
+        if (proceed === false) return;
+      }
+
       this.css(element, {
         position: '',
         width: '',
@@ -288,20 +295,21 @@ var Sticky = /*#__PURE__*/function () {
 
       var stickyOverflowHeight = this.vp.height - (element.sticky.rect.height + element.sticky.marginTop);
       var stickyModeHeight = element.sticky.stickyMode === 'bottom' ? stickyOverflowHeight : 0;
-      stickyIgnoreScrollFor = element.sticky.stickyIgnoreScrollFor; // stickyIgnoreScrollFor = 100
+      stickyIgnoreScrollFor = parseInt(element.sticky.stickyIgnoreScrollFor); // stickyIgnoreScrollFor = 100
       // test = 0
       // console.log(test)
-      // console.log(element.sticky.rect, this.scrollTop)
+      // console.log(element.sticky, this.scrollTop, {stickyIgnoreScrollFor})
 
-      if (element.sticky.rect.top === 0 && this.scrollTop > stickyIgnoreScrollFor && element.sticky.container === this.body) {
+      if ( // element.sticky.rect.top === 0
+      element.sticky.rect.top <= 0 && this.scrollTop > stickyIgnoreScrollFor && element.sticky.container === this.body) {
         this.css(element, {
           position: 'fixed',
-          top: element.sticky.rect.top + 'px',
+          top: element.sticky.marginTop + element.sticky.rect.top + 'px',
           left: element.sticky.rect.left + 'px',
           width: element.sticky.rect.width + 'px'
         });
-        this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
-        this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false); // if(typeof element.sticky.onStickyChange === 'function') {
+        this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false);
+        this.addOrRemoveClasses(element, element.sticky.stickyClass, true); // if(typeof element.sticky.onStickyChange === 'function') {
         //     element.sticky.onStickyChange(true, element, this)
         // }
       } else if (this.scrollTop > element.sticky.rect.top - element.sticky.marginTop - stickyModeHeight + stickyIgnoreScrollFor) {
@@ -311,7 +319,7 @@ var Sticky = /*#__PURE__*/function () {
           left: element.sticky.rect.left + 'px'
         });
 
-        if (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight + stickyIgnoreScrollFor > element.sticky.container.rect.top + element.sticky.container.offsetHeight - element.sticky.marginBottom) {
+        if (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight - stickyIgnoreScrollFor > element.sticky.container.rect.top + element.sticky.container.offsetHeight - element.sticky.marginBottom) {
           this.addOrRemoveClasses(element, element.sticky.stickyClass, false);
           this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, true); // if(typeof element.sticky.onStickyChange === 'function') {
           //     element.sticky.onStickyChange(false)
@@ -321,8 +329,8 @@ var Sticky = /*#__PURE__*/function () {
             top: element.sticky.container.rect.top + element.sticky.container.offsetHeight - (this.scrollTop + element.sticky.rect.height + element.sticky.marginBottom) + 'px'
           });
         } else {
-          this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
-          this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false); // if(typeof element.sticky.onStickyChange === 'function') {
+          this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false);
+          this.addOrRemoveClasses(element, element.sticky.stickyClass, true); // if(typeof element.sticky.onStickyChange === 'function') {
           //     element.sticky.onStickyChange(true)
           // }
 
