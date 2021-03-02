@@ -278,26 +278,27 @@ class Sticky {
 
         let stickyModeHeight = element.sticky.stickyMode === 'bottom' ? stickyOverflowHeight : 0
 
-        stickyIgnoreScrollFor = element.sticky.stickyIgnoreScrollFor
+        stickyIgnoreScrollFor = parseInt(element.sticky.stickyIgnoreScrollFor)
         // stickyIgnoreScrollFor = 100
         // test = 0
         // console.log(test)
-        // console.log(element.sticky.rect, this.scrollTop)
+        // console.log(element.sticky, this.scrollTop, {stickyIgnoreScrollFor})
 
         if (
-            element.sticky.rect.top === 0
+            // element.sticky.rect.top === 0
+            element.sticky.rect.top <= 0
             && this.scrollTop > stickyIgnoreScrollFor
             && element.sticky.container === this.body
         ) {
             this.css(element, {
                 position: 'fixed',
-                top: element.sticky.rect.top + 'px',
+                top: element.sticky.marginTop + element.sticky.rect.top + 'px',
                 left: element.sticky.rect.left + 'px',
                 width: element.sticky.rect.width + 'px',
             });
 
-            this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
             this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false);
+            this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
             // if(typeof element.sticky.onStickyChange === 'function') {
             //     element.sticky.onStickyChange(true, element, this)
             // }
@@ -310,7 +311,7 @@ class Sticky {
             });
 
             if (
-                (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight + stickyIgnoreScrollFor)
+                (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop + stickyModeHeight - stickyIgnoreScrollFor)
                 > (element.sticky.container.rect.top + element.sticky.container.offsetHeight - element.sticky.marginBottom)
             ) {
 
@@ -326,8 +327,8 @@ class Sticky {
                 );
             } else {
 
-                this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
                 this.addOrRemoveClasses(element, element.sticky.stickyInactiveClass, false);
+                this.addOrRemoveClasses(element, element.sticky.stickyClass, true);
                 // if(typeof element.sticky.onStickyChange === 'function') {
                 //     element.sticky.onStickyChange(true)
                 // }
