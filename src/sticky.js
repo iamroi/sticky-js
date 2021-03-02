@@ -38,6 +38,7 @@ class Sticky {
             stickyIgnoreScrollFor: options.stickyIgnoreScrollFor || 0,
             stickyContainer: options.stickyContainer || 'body',
             // onStickyChange: options.onStickyChange || null,
+            beforeSetPosition: options.beforeSetPosition || null,
             afterSetPosition: options.afterSetPosition || null,
         };
 
@@ -94,6 +95,7 @@ class Sticky {
         // element.sticky.stickyContainer = element.getAttribute('data-sticky-container') || this.options.stickyContainer;
         element.sticky.stickyContainer = this.options.stickyContainer;
         // element.sticky.onStickyChange = this.options.onStickyChange;
+        element.sticky.beforeSetPosition = this.options.beforeSetPosition;
         element.sticky.afterSetPosition = this.options.afterSetPosition;
 
         element.sticky.container = this.getStickyContainer(element);
@@ -248,6 +250,11 @@ class Sticky {
      * @param {node} element - Element that will be positioned if it's active
      */
     setPosition(element) {
+        if(typeof element.sticky.beforeSetPosition === 'function') {
+            var proceed = element.sticky.beforeSetPosition(element, this)
+            if(proceed === false ) return;
+        }
+
         this.css(element, {position: '', width: '', top: '', left: ''});
 
         //(this.vp.height < element.sticky.rect.height) ||
