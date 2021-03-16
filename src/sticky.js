@@ -355,6 +355,10 @@ class Sticky {
     }
 
     addOrRemoveClasses(element, classes, adding = true) {
+        classes = classes === null ? '' : classes
+
+        if(classes === '') return;
+
         // remove lines
         classes = classes.replace(/(\r\n|\n|\r)/gm,"");
         // remove duplicate spaces

@@ -368,7 +368,9 @@ var Sticky = /*#__PURE__*/function () {
     key: "addOrRemoveClasses",
     value: function addOrRemoveClasses(element, classes) {
       var adding = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-      // remove lines
+      classes = classes === null ? '' : classes;
+      if (classes === '') return; // remove lines
+
       classes = classes.replace(/(\r\n|\n|\r)/gm, ""); // remove duplicate spaces
 
       classes = classes.replace(/\s+/g, ' '); // console.log(classes)
