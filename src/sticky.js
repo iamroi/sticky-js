@@ -68,6 +68,39 @@ class Sticky {
         }, 10);
     }
 
+    getResponsiveBasedValue(attributeSetting, defaultValue = 0) {
+        // var attributeSetting = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+        var attributeEntries = `${attributeSetting}`.trim().split(',')
+        // console.log({attributeSetting}, {attributeEntries})
+
+        var responsiveValues = []
+        this.forEach(attributeEntries, (attributeEntry) => {
+            var attributeEntryValues = attributeEntry.trim().split(':')
+            var responsiveWidth = 0 // responsive min to large
+            var responsiveValue = defaultValue
+            if(attributeEntryValues.length == 2) {
+                responsiveWidth = attributeEntryValues[0]
+                responsiveValue = attributeEntryValues[1]
+            } else {
+                responsiveValue = attributeEntryValues[0]
+            }
+
+            responsiveValues.push({
+                width: responsiveWidth,
+                value: responsiveValue
+            })
+        })
+        // console.log(this.vp, {responsiveValues})
+
+        var finalValue = defaultValue;
+        this.forEach(responsiveValues, (responsiveValue) => {
+            if(this.vp.width >= parseInt(responsiveValue.width)) {
+                finalValue = parseInt(responsiveValue.value)
+            }
+        })
+
+        return finalValue
+    }
 
     /**
      * Function that assign needed variables for sticky element, that are used in future for calculations and other
@@ -81,7 +114,11 @@ class Sticky {
         // set default variables
         element.sticky.active = false;
 
-        element.sticky.marginTop = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+        // var marginTopOption = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+        // element.sticky.marginTop = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+        element.sticky.marginTop = this.getResponsiveBasedValue(element.getAttribute('data-margin-top') || this.options.marginTop);
+        // console.log(element.sticky.marginTop)
+
         element.sticky.marginBottom = parseInt(element.getAttribute('data-margin-bottom')) || this.options.marginBottom;
         element.sticky.stickyFor = parseInt(element.getAttribute('data-sticky-for')) || this.options.stickyFor;
         element.sticky.stickyDisableFor = parseInt(element.getAttribute('data-sticky-disable-for')) || this.options.stickyDisableFor;
@@ -188,6 +225,9 @@ class Sticky {
      */
     onResizeEvents(element) {
         this.vp = this.getViewportSize();
+
+        // refreshing responsive based attributes // marginTop, etc
+        element.sticky.marginTop = this.getResponsiveBasedValue(element.getAttribute('data-margin-top') || this.options.marginTop);
 
         element.sticky.rect = this.getRectangle(element);
         element.sticky.container.rect = this.getRectangle(element.sticky.container);
