@@ -44,6 +44,8 @@ class Sticky {
 
         this.updateScrollTopPosition = this.updateScrollTopPosition.bind(this);
 
+        this.getResponsiveBasedValue = this.getResponsiveBasedValue.bind(this);
+
         this.updateScrollTopPosition();
         window.addEventListener('load', this.updateScrollTopPosition);
         window.addEventListener('scroll', this.updateScrollTopPosition);
