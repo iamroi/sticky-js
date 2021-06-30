@@ -49,6 +49,7 @@ var Sticky = /*#__PURE__*/function () {
       afterSetPosition: options.afterSetPosition || null
     };
     this.updateScrollTopPosition = this.updateScrollTopPosition.bind(this);
+    this.getResponsiveBasedValue = this.getResponsiveBasedValue.bind(this);
     this.updateScrollTopPosition();
     window.addEventListener('load', this.updateScrollTopPosition);
     window.addEventListener('scroll', this.updateScrollTopPosition);
@@ -77,6 +78,43 @@ var Sticky = /*#__PURE__*/function () {
         }
       }, 10);
     }
+  }, {
+    key: "getResponsiveBasedValue",
+    value: function getResponsiveBasedValue(attributeSetting) {
+      var _this2 = this;
+
+      var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      // var attributeSetting = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+      var attributeEntries = "".concat(attributeSetting).trim().split(','); // console.log({attributeSetting}, {attributeEntries})
+
+      var responsiveValues = [];
+      this.forEach(attributeEntries, function (attributeEntry) {
+        var attributeEntryValues = attributeEntry.trim().split(':');
+        var responsiveWidth = 0; // responsive min to large
+
+        var responsiveValue = defaultValue;
+
+        if (attributeEntryValues.length == 2) {
+          responsiveWidth = attributeEntryValues[0];
+          responsiveValue = attributeEntryValues[1];
+        } else {
+          responsiveValue = attributeEntryValues[0];
+        }
+
+        responsiveValues.push({
+          width: responsiveWidth,
+          value: responsiveValue
+        });
+      }); // console.log(this.vp, {responsiveValues})
+
+      var finalValue = defaultValue;
+      this.forEach(responsiveValues, function (responsiveValue) {
+        if (_this2.vp.width >= parseInt(responsiveValue.width)) {
+          finalValue = parseInt(responsiveValue.value);
+        }
+      });
+      return finalValue;
+    }
     /**
      * Function that assign needed variables for sticky element, that are used in future for calculations and other
      * @function
@@ -86,13 +124,16 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "renderElement",
     value: function renderElement(element) {
-      var _this2 = this;
+      var _this3 = this;
 
       // create container for variables needed in future
       element.sticky = {}; // set default variables
 
-      element.sticky.active = false;
-      element.sticky.marginTop = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+      element.sticky.active = false; // var marginTopOption = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+      // element.sticky.marginTop = parseInt(element.getAttribute('data-margin-top')) || this.options.marginTop;
+
+      element.sticky.marginTop = this.getResponsiveBasedValue(element.getAttribute('data-margin-top') || this.options.marginTop); // console.log(element.sticky.marginTop)
+
       element.sticky.marginBottom = parseInt(element.getAttribute('data-margin-bottom')) || this.options.marginBottom;
       element.sticky.stickyFor = parseInt(element.getAttribute('data-sticky-for')) || this.options.stickyFor;
       element.sticky.stickyDisableFor = parseInt(element.getAttribute('data-sticky-disable-for')) || this.options.stickyDisableFor;
@@ -114,7 +155,7 @@ var Sticky = /*#__PURE__*/function () {
 
       if (element.tagName.toLowerCase() === 'img') {
         element.onload = function () {
-          return element.sticky.rect = _this2.getRectangle(element);
+          return element.sticky.rect = _this3.getRectangle(element);
         };
       }
 
@@ -175,10 +216,10 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "initResizeEvents",
     value: function initResizeEvents(element) {
-      var _this3 = this;
+      var _this4 = this;
 
       element.sticky.resizeListener = function () {
-        return _this3.onResizeEvents(element);
+        return _this4.onResizeEvents(element);
       };
 
       window.addEventListener('resize', element.sticky.resizeListener);
@@ -203,7 +244,9 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "onResizeEvents",
     value: function onResizeEvents(element) {
-      this.vp = this.getViewportSize();
+      this.vp = this.getViewportSize(); // refreshing responsive based attributes // marginTop, etc
+
+      element.sticky.marginTop = this.getResponsiveBasedValue(element.getAttribute('data-margin-top') || this.options.marginTop);
       element.sticky.rect = this.getRectangle(element);
       element.sticky.container.rect = this.getRectangle(element.sticky.container); // console.log(element.sticky.stickyDisableFor)
 
@@ -224,10 +267,10 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "initScrollEvents",
     value: function initScrollEvents(element) {
-      var _this4 = this;
+      var _this5 = this;
 
       element.sticky.scrollListener = function () {
-        return _this4.onScrollEvents(element);
+        return _this5.onScrollEvents(element);
       };
 
       window.addEventListener('scroll', element.sticky.scrollListener);
@@ -392,15 +435,15 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update() {
-      var _this5 = this;
+      var _this6 = this;
 
       this.forEach(this.elements, function (element) {
-        element.sticky.rect = _this5.getRectangle(element);
-        element.sticky.container.rect = _this5.getRectangle(element.sticky.container);
+        element.sticky.rect = _this6.getRectangle(element);
+        element.sticky.container.rect = _this6.getRectangle(element.sticky.container);
 
-        _this5.activate(element);
+        _this6.activate(element);
 
-        _this5.setPosition(element);
+        _this6.setPosition(element);
       });
     }
     /**
@@ -411,14 +454,14 @@ var Sticky = /*#__PURE__*/function () {
   }, {
     key: "destroy",
     value: function destroy() {
-      var _this6 = this;
+      var _this7 = this;
 
       window.removeEventListener('load', this.updateScrollTopPosition);
       window.removeEventListener('scroll', this.updateScrollTopPosition);
       this.forEach(this.elements, function (element) {
-        _this6.destroyResizeEvents(element);
+        _this7.destroyResizeEvents(element);
 
-        _this6.destroyScrollEvents(element);
+        _this7.destroyScrollEvents(element);
 
         delete element.sticky;
       });
